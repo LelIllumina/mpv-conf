@@ -19,7 +19,8 @@ local os_type = (platform == "windows") and "windows" or "unix"
 
 local options = {
     ffmpeg_path = "ffmpeg",
-    dir = (os_type == "windows") and "~~desktop/" or "~/",
+    dir = "D:/Pictures/Screenshots/",
+    -- dir = (os_type == "windows") and "~~desktop/" or "~/",
     libplacebo = false,      -- Use libplacebo for scaling, requires libplacebo to be compiled with ffmpeg
     rez = 640,               -- Output resolution, in pixels, width, keep aspect ratio
     fps = 0,                 -- 0 means use source video fps
