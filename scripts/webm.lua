@@ -16,7 +16,7 @@ local options = {
 	-- The [[]] delimiter is not needed when using from a configuration file
 	-- in the script-opts folder.
 	output_directory = [[D:\Videos\Clips]],
-	run_detached = trues,
+	run_detached = false,
 	-- Template string for the output file
 	-- %f - Filename, with extension
 	-- %F - Filename, without extension
@@ -37,7 +37,7 @@ local options = {
 	-- used on the encode. If this is set to <= 0, the video bitrate will be set
 	-- to 0, which might enable constant quality modes, depending on the
 	-- video codec that's used (VP8 and VP9, for example).
-	target_filesize = 8000,
+	target_filesize = 9000,
 	-- If true, will use stricter flags to ensure the resulting file doesn't
 	-- overshoot the target filesize. Not recommended, as constrained quality
 	-- mode should work well, unless you're really having trouble hitting
@@ -57,12 +57,12 @@ local options = {
 	-- gif
 	-- mp3 (libmp3lame)
 	-- and raw (rawvideo/pcm_s16le).
-	output_format = "webm-vp8",
+	output_format = "webm-vp9",
 	twopass = true,
 	-- If set, applies the video filters currently used on the playback to the encode.
 	apply_current_filters = true,
 	-- If set, writes the video's filename to the "Title" field on the metadata.
-	write_filename_on_metadata = false,
+	write_filename_on_metadata = true,
 	-- Set the number of encoding threads, for codecs libvpx and libvpx-vp9
 	threads = 8,
 	additional_flags = "",
@@ -76,9 +76,9 @@ local options = {
 	-- On Windows, it shows a cmd popup. "auto" will display progress on non-Windows platforms.
 	display_progress = "auto",
 	-- The font size used in the menu. Isn't used for the notifications (started encode, finished encode etc)
-	font_size = 28,
+	font_size = 18,
 	margin = 10,
-	message_duration = 5,
+	message_duration = 15,
 	-- gif dither mode, 0-5 for bayer w/ bayer_scale 0-5, 6 for paletteuse default (sierra2_4a)
 	gif_dither = 2,
 	-- Force square pixels on output video
@@ -86,7 +86,7 @@ local options = {
 	force_square_pixels = false,
     -- MPV command to run upon successful encoding
     -- %{output} will be replaced with the path to the resulting file.
-    completion_command = "",
+    completion_command = "show-text Finished all over the screen %{output}",
 }
 
 mpopts.read_options(options)
