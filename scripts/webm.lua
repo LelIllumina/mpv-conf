@@ -86,7 +86,7 @@ local options = {
 	force_square_pixels = false,
     -- MPV command to run upon successful encoding
     -- %{output} will be replaced with the path to the resulting file.
-    completion_command = "show-text Finished all over the screen %{output}",
+    completion_command = "",
 }
 
 mpopts.read_options(options)
