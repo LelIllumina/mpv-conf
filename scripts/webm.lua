@@ -27,7 +27,7 @@ local options = {
 	-- %R - "-(height)p", where height is the video's height, or scale_height, if it's enabled.
 	-- More specifiers are supported, see https://mpv.io/manual/master/#options-screenshot-template
 	-- Property expansion is supported (with %{} at top level, ${} when nested), see https://mpv.io/manual/master/#property-expansion
-	output_template = "%F-[%s-%e]%M",
+	output_template = "%F-[%s-%e]",
 	-- Scale video to a certain height, keeping the aspect ratio. -1 disables it.
 	scale_height = -1,
 	-- Change the FPS of the output video, dropping or duplicating frames as needed.
@@ -45,7 +45,7 @@ local options = {
 	strict_filesize_constraint = false,
 	strict_bitrate_multiplier = 0.95,
 	-- In kilobits.
-	strict_audio_bitrate = 64,
+	strict_audio_bitrate = 192,
 	-- Sets the output format, from a few predefined ones.
 	-- Currently we have:
 	-- av1
@@ -57,7 +57,10 @@ local options = {
 	-- gif
 	-- mp3 (libmp3lame)
 	-- and raw (rawvideo/pcm_s16le).
-	output_format = "webm-vp9",
+	
+	-- custom h264-qsv
+	-- custom hevc-qsv
+	output_format = "hevc-qsv",
 	twopass = true,
 	-- If set, applies the video filters currently used on the playback to the encode.
 	apply_current_filters = true,
@@ -1389,6 +1392,120 @@ do
   GIF = _class_0
 end
 formats["gif"] = GIF()
+
+-- More
+local H264QSV
+do
+  local _class_0
+  local _parent_0 = Format
+  local _base_0 = {
+    getFlags = function(self)
+      return {
+        "--ovcopts-add=threads=" .. tostring(options.threads),
+        "--ovcopts-add=async_depth=4",
+--        "--ovcopts-add=preset=veryfast",
+        "--ovcopts-add=load_plugin=hevc_hw",  -- ignored for H.264, harmless
+        "--ovcopts-add=look_ahead=1",
+--        "--ovcopts-add=global_quality=" .. tostring(options.crf)
+      }
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  _class_0 = setmetatable({
+    __init = function(self)
+      self.displayName = "H.264 (QSV)"
+      self.supportsTwopass = true
+      self.videoCodec = "h264_qsv"
+      self.audioCodec = "aac"
+      self.outputExtension = "mp4"
+      self.acceptsBitrate = true
+    end,
+    __base = _base_0,
+    __name = "H264QSV",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        local parent = rawget(cls, "__parent")
+        if parent then
+          return parent[name]
+        end
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  H264QSV = _class_0
+end
+
+formats["h264-qsv"] = H264QSV()
+local HEVCQSV
+do
+  local _class_0
+  local _parent_0 = Format
+  local _base_0 = {
+    getFlags = function(self)
+      return {
+        "--ovcopts-add=threads=" .. tostring(options.threads),
+        "--ovcopts-add=async_depth=4",
+--        "--ovcopts-add=preset=fast",
+        "--ovcopts-add=load_plugin=hevc_hw",
+        "--ovcopts-add=look_ahead=1",
+--        "--ovcopts-add=global_quality=" .. tostring(options.crf)
+      }
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  _class_0 = setmetatable({
+    __init = function(self)
+      self.displayName = "HEVC (QSV)"
+      self.supportsTwopass = true
+      self.videoCodec = "hevc_qsv"
+      self.audioCodec = "aac"
+      self.outputExtension = "mp4"
+      self.acceptsBitrate = true
+    end,
+    __base = _base_0,
+    __name = "HEVCQSV",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        local parent = rawget(cls, "__parent")
+        if parent then
+          return parent[name]
+        end
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  HEVCQSV = _class_0
+end
+
+formats["hevc-qsv"] = HEVCQSV()
 local Page
 do
   local _class_0
@@ -2573,7 +2690,9 @@ do
         "webm-vp8",
         "gif",
         "mp3",
-        "raw"
+        "raw",
+		"h264-qsv",
+		"hevc-qsv"
       }
       local formatOpts = {
         possibleValues = (function()
