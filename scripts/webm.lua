@@ -37,7 +37,7 @@ local options = {
 	-- used on the encode. If this is set to <= 0, the video bitrate will be set
 	-- to 0, which might enable constant quality modes, depending on the
 	-- video codec that's used (VP8 and VP9, for example).
-	target_filesize = 9000,
+	target_filesize = 10000,
 	-- If true, will use stricter flags to ensure the resulting file doesn't
 	-- overshoot the target filesize. Not recommended, as constrained quality
 	-- mode should work well, unless you're really having trouble hitting
@@ -60,7 +60,8 @@ local options = {
 	
 	-- custom h264-qsv
 	-- custom hevc-qsv
-	output_format = "hevc-qsv",
+	-- custom av1-custom (libsvtav1/libopus)
+	output_format = "av1-custom",
 	twopass = true,
 	-- If set, applies the video filters currently used on the playback to the encode.
 	apply_current_filters = true,
@@ -68,16 +69,16 @@ local options = {
 	write_filename_on_metadata = true,
 	-- Set the number of encoding threads, for codecs libvpx and libvpx-vp9
 	threads = 8,
-	additional_flags = "",
+	additional_flags = "rc=2",
 	-- Constant Rate Factor (CRF). The value meaning and limits may change,
 	-- from codec to codec. Set to -1 to disable.
-	crf = 10,
+	crf = -1,
 	-- Useful for flags that may impact output filesize, such as qmin, qmax etc
 	-- Won't be applied when strict_filesize_constraint is on.
 	non_strict_additional_flags = "",
 	-- Display the encode progress, in %. Requires run_detached to be disabled.
 	-- On Windows, it shows a cmd popup. "auto" will display progress on non-Windows platforms.
-	display_progress = "auto",
+	display_progress = "true",
 	-- The font size used in the menu. Isn't used for the notifications (started encode, finished encode etc)
 	font_size = 18,
 	margin = 10,
@@ -1448,7 +1449,6 @@ do
   end
   H264QSV = _class_0
 end
-
 formats["h264-qsv"] = H264QSV()
 local HEVCQSV
 do
@@ -1504,8 +1504,62 @@ do
   end
   HEVCQSV = _class_0
 end
-
 formats["hevc-qsv"] = HEVCQSV()
+local AV1CUSTOM
+do
+  local _class_0
+  local _parent_0 = Format
+  local _base_0 = {
+    getFlags = function(self)
+      return {
+        "--ovcopts-add=threads=" .. tostring(options.threads),
+        "--ovcopts-add=rc=2",  -- VBR mode
+        "--ovcopts-add=g=240",  -- GOP length
+        "--ovcopts-add=preset=6",
+        "--ovcopts-add=svtav1-params=tune=0:scd=1",
+        "--ovcopts-add=pix_fmt=yuv420p10le"
+      }
+    end
+  }
+  _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
+  _class_0 = setmetatable({
+    __init = function(self)
+      self.displayName = "AV1 (Custom Codecs)"
+      self.supportsTwopass = true
+      self.videoCodec = "libsvtav1"
+      self.audioCodec = "libopus"
+      self.outputExtension = "webm"
+      self.acceptsBitrate = true
+    end,
+    __base = _base_0,
+    __name = "AV1CUSTOM",
+    __parent = _parent_0
+  }, {
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        local parent = rawget(cls, "__parent")
+        if parent then
+          return parent[name]
+        end
+      else
+        return val
+      end
+    end,
+    __call = function(cls, ...)
+      local _self_0 = setmetatable({}, _base_0)
+      cls.__init(_self_0, ...)
+      return _self_0
+    end
+  })
+  _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
+  AV1CUSTOM = _class_0
+end
+formats["av1-custom"] = AV1CUSTOM()
 local Page
 do
   local _class_0
@@ -2085,6 +2139,7 @@ encode = function(region, startTime, endTime)
         append(command, {
           "--ovcopts-add=b=" .. tostring(video_bitrate) .. "k"
         })
+
       end
       if audio_bitrate then
         append(command, {
@@ -2692,7 +2747,8 @@ do
         "mp3",
         "raw",
 		"h264-qsv",
-		"hevc-qsv"
+		"hevc-qsv",
+		"av1-custom"
       }
       local formatOpts = {
         possibleValues = (function()
